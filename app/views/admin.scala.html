@@ -3,8 +3,8 @@
     <h1>シンプル☆アンケート</h1>
 </div>
 
-<div class="drop-shadow">
-    <div class="enquete" data-bind="with: enquete">
+<div class="enquete" data-bind="with: enquete">
+    <div class="drop-shadow">
         <div><input type="text"
                     class="title input-block-level"
                     placeholder="タイトル"
@@ -51,13 +51,13 @@
         <button type="button" class="btn" data-bind="click: addQuestion">
             <i class="icon-plus"></i> 質問を追加する
         </button>
-    </div>
 
-    <form action="/" method="post" class="enquete-submit save">
-        <button type="submit" class="btn btn-block" data-bind="enable: valid">
-            アンケートを作る
-        </button>
-    </form>
+        <form method="post" class="enquete-submit update" data-bind="attr: {action: location.href}">
+            <button type="submit" class="btn btn-block" data-bind="enable: valid">
+                更新する
+            </button>
+        </form>
+    </div>
 </div>
 
 <div class="my-footer">

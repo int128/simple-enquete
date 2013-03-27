@@ -1,0 +1,94 @@
+/* Mixins */
+.border-radius (@radius) {
+    border-radius: @radius;
+    -moz-border-radius: @radius;
+    -webkit-border-radius: @radius;
+}
+
+.box-shadow (@x, @y, @blur, @color) {
+    box-shadow: @arguments;
+    -moz-box-shadow: @arguments;
+    -webkit-box-shadow: @arguments;
+}
+
+.center-box (@width, @height) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: @width;
+    height: @height;
+    margin-left: (-@width / 2);
+    margin-top: (-@height / 2);
+}
+
+/* Core structure */
+body {
+    background-color: #eee;
+}
+
+.my-header {
+    margin-top: 20px;
+    margin-bottom: 50px;
+    text-shadow: #fff 2px 0;
+}
+
+.my-footer {
+    margin-top: 50px;
+    margin-bottom: 20px;
+    text-shadow: #fff 2px 0;
+    font-size: 80%;
+    color: #666;
+}
+
+.loading {
+    .border-radius(20px);
+    .center-box(100px, 100px);
+    background: rgba(0, 0, 0, 0.9) url('../images/ajax-loader.gif') center no-repeat;
+}
+
+.notification {
+    .border-radius(10px);
+    .center-box(300px, 100px);
+    padding: 10px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+}
+
+.drop-shadow {
+    .border-radius(5px);
+    .box-shadow(#888, 0, -10px, 20px);
+    background-color: #fff;
+    padding: 20px;
+    margin: -20px;
+}
+
+h1 {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+form {
+    margin: 0;
+}
+
+/* Enquete */
+.enquete {
+    .title {
+        font-size: 150%;
+        height: auto;
+    }
+
+    .question {
+        margin-top: 2em;
+    }
+
+    .question-header {
+        margin-top: 1em;
+        margin-bottom: 1em;
+    }
+
+    .enquete-submit {
+        margin-top: 2em;
+    }
+}
