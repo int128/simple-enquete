@@ -28,6 +28,22 @@ object Enquetes extends Table[(Int, String, Option[String], String, String)]("en
   def findIdByAdminKey(adminKey: String)(implicit session: Session): Option[Int] =
     findIdByAdminKeyQuery(adminKey).firstOption
 
+  val findByAnswerKeyQuery = for {
+    answerKey <- Parameters[String]
+    e <- Enquetes if e.answerKey is answerKey
+  } yield e
+
+  def findByAnswerKey(answerKey: String)(implicit session: Session) =
+    findByAnswerKeyQuery(answerKey).firstOption
+
+  val findIdByAnswerKeyQuery = for {
+    answerKey <- Parameters[String]
+    e <- Enquetes if e.answerKey is answerKey
+  } yield e.id
+
+  def findIdByAnswerKey(answerKey: String)(implicit session: Session): Option[Int] =
+    findIdByAnswerKeyQuery(answerKey).firstOption
+
   def updateQuery(id: Int) = for {
     e <- Enquetes if e.id is id
   } yield (e.title ~ e.description)

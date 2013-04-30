@@ -1,11 +1,33 @@
+@(e: services.EnqueteService.EnqueteDto, answerKey: String)
+
 @import helper._
 
-@main("アンケートに答える - simple enquete") {
-    <div class="page-header">
-        <h1>simple enquete <small>かんたんアンケート</small></h1>
+@main(e.title) {
+<div class="my-header">
+    <h1>@e.title</h1>
+    <p class="lead">@e.description</p>
+</div>
+
+<div class="enquete">
+    <div class="drop-shadow">
+        @form(action = routes.Application.answerEnquete(answerKey)) {
+            @for(q <- e.questions) {
+                <h2>@q.description</h2>
+                @for(o <- q.questionOptions) {
+                    <label class="radio">
+                        <input type="radio" class="radio" name="@q.id" value="@o.id" />
+                        @o.description
+                    </label>
+                }
+            }
+            <div class="enquete-submit">
+                <button type="submit" class="btn btn-block">送る</button>
+            </div>
+        }
     </div>
+</div>
 
-    <p>
-    </p>
-
+<div class="my-footer">
+    simple enquete service &copy; hidetake.org, 2013.
+</div>
 }

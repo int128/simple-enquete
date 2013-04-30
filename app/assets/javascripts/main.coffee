@@ -94,5 +94,4 @@ $ ->
             app.clear()
         @post '', ->
             app.clear()
-            false
     .run()

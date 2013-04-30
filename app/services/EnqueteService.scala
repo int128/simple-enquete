@@ -42,6 +42,18 @@ object EnqueteService {
     }
   }
 
+  def findByAnswerKey(answerKey: String): Option[EnqueteDto] = DB.withTransaction { implicit session =>
+    Enquetes.findByAnswerKey(answerKey).map { case (eId, title, description, _, _) =>
+      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
+        val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
+          QuestionOptionDto(Some(oId), oDescription)
+        }
+        QuestionDto(Some(qId), qDescription, answerType, options)
+      }
+      EnqueteDto(title, description, questions)
+    }
+  }
+
   def update(adminKey: String, dto: EnqueteDto): Boolean = DB.withTransaction { implicit session =>
     Enquetes.findIdByAdminKey(adminKey) match {
       case Some(eId) =>
