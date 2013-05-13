@@ -1,7 +1,7 @@
 package controllers
 
 import services._
-import services.EnqueteService._
+import services.AdminService._
 import play.api.mvc._
 import play.api.libs.json._
 import java.util.UUID
@@ -18,14 +18,14 @@ object Application extends Controller {
 
   def createEnquete = Action(parse.json) { request =>
     request.body.validate[EnqueteDto].map { dto =>
-      Ok(Json.obj("adminKey" -> EnqueteService.create(dto)))
+      Ok(Json.obj("adminKey" -> AdminService.create(dto)))
     }.recoverTotal { e =>
       BadRequest(Json.obj("error" -> JsError.toFlatJson(e)))
     }
   }
 
   def queryEnquete(adminKey: String) = Action {
-    EnqueteService.findByAdminKey(adminKey) match {
+    AdminService.findByAdminKey(adminKey) match {
       case Some(e) => Ok(Json.obj("enquete" -> e))
       case None => NotFound("not found")
     }
@@ -33,9 +33,9 @@ object Application extends Controller {
 
   def updateEnquete(adminKey: String) = Action(parse.json) { request =>
     request.body.validate[EnqueteDto].map { dto =>
-      EnqueteService.update(adminKey, dto) match {
+      AdminService.update(adminKey, dto) match {
         case true =>
-          EnqueteService.findByAdminKey(adminKey) match {
+          AdminService.findByAdminKey(adminKey) match {
             case Some(e) => Ok(Json.obj("enquete" -> e))
             case None => NotFound("not found")
           }
@@ -47,7 +47,7 @@ object Application extends Controller {
   }
 
   def showEnqueteForAnswer(answerKey: String) = Action { request =>
-    EnqueteService.findByAnswerKey(answerKey) match {
+    AdminService.findByAnswerKey(answerKey) match {
       case Some(e) =>
         request.cookies.get("k") match {
           case Some(_) => Ok(views.html.answer(e, answerKey))

@@ -6,7 +6,7 @@ import play.api.db.slick.DB
 import play.api.Play.current
 import scala.util._
 
-object EnqueteService {
+object AdminService {
 
   case class QuestionOptionDto(id: Option[Int], description: String)
   case class QuestionDto(id: Option[Int], description: String, answerType: String, questionOptions: List[QuestionOptionDto])
