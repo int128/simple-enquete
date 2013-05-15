@@ -21,14 +21,14 @@ object AnsweringService {
         (givenQuestionIds == expectedQuestionIds) match {
           case true =>
             questions.forall {
-              case (qId, answerType) if answerType == "option" =>
+              case (qId, answerType) if answerType == "singleSelection" =>
                 // TODO: check if can toInt
                 questionAndAnswers.get(qId).fold(false)(_.length == 1)
 
             } match {
               case true =>
                 questions.map {
-                  case (qId, answerType) if answerType == "option" =>
+                  case (qId, answerType) if answerType == "singleSelection" =>
                     SingleSelectionAnswers.insert((uid, qId, questionAndAnswers(qId).head.toInt))
                 }
                 Left(Some(eId))

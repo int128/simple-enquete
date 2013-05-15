@@ -32,7 +32,7 @@ $ ->
         constructor: (q) ->
             @id = q.id if q
             @description = ko.observable(q.description if q)
-            @answerType = ko.observable(if q then q.answerType else 'option')
+            @answerType = ko.observable(if q then q.answerType else 'singleSelection')
             @newQuestionOption = ko.observable()
             @_questionOptions = (if q then q.questionOptions else []).map (o) -> new QuestionOption(o)
             @questionOptions = ko.computed(@rearrangeQuestionOptions)
