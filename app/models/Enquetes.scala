@@ -3,6 +3,7 @@ package models
 import play.api.db.slick.Config.driver.simple._
 
 object Enquetes extends Table[(Int, String, Option[String], String, String)]("enquete") {
+
   def id          = column[Int]("enquete_id", O.PrimaryKey, O.AutoInc)
   def title       = column[String]("title")
   def description = column[Option[String]]("description")
@@ -47,4 +48,5 @@ object Enquetes extends Table[(Int, String, Option[String], String, String)]("en
   def updateQuery(id: Int) = for {
     e <- Enquetes if e.id is id
   } yield (e.title ~ e.description)
+
 }

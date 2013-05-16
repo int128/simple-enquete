@@ -3,6 +3,7 @@ package models
 import play.api.db.slick.Config.driver.simple._
 
 object QuestionOptions extends Table[(Int, Int, Int, Int, String)]("question_option") {
+
   def enqueteId   = column[Int]("enquete_id")
   def questionId  = column[Int]("question_id")
   def id          = column[Int]("question_option_id", O.PrimaryKey, O.AutoInc)
@@ -25,4 +26,5 @@ object QuestionOptions extends Table[(Int, Int, Int, Int, String)]("question_opt
   def updateQuery(eId: Int, qId: Int, oId: Int) = for {
     o <- QuestionOptions if (o.enqueteId is eId) && (o.questionId is qId) && (o.id is oId)
   } yield (o.order ~ o.description)
+
 }

@@ -8,9 +8,17 @@ import scala.util._
 
 object AdminService {
 
-  case class QuestionOptionDto(id: Option[Int], description: String)
-  case class QuestionDto(id: Option[Int], description: String, answerType: String, questionOptions: List[QuestionOptionDto])
-  case class EnqueteDto(title: String, description: Option[String], questions: List[QuestionDto])
+  case class QuestionOptionDto(id: Option[Int],
+                               description: String)
+
+  case class QuestionDto(id: Option[Int],
+                         description: String,
+                         answerType: String,
+                         questionOptions: List[QuestionOptionDto])
+
+  case class EnqueteDto(title: String,
+                        description: Option[String],
+                        questions: List[QuestionDto])
 
   def create(dto: EnqueteDto): String = DB.withTransaction { implicit session =>
     // generates random string from 16 to 32 characters
