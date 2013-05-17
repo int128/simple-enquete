@@ -3,6 +3,11 @@
     <h1>シンプル☆アンケート</h1>
 </div>
 
+<div class="enquete-metadata" data-bind="with: enquete">
+    <div><strong>回答ページのリンク</strong></div>
+    <a target="_blank" data-bind="attr: {href: answerLink}, text: answerLink"></a>
+</div>
+
 <div class="enquete" data-bind="with: enquete">
     <div class="drop-shadow">
         <div><input type="text"

@@ -49,6 +49,7 @@ $ ->
         constructor: (e) ->
             @title = ko.observable(e.title if e)
             @description = ko.observable(e.description if e)
+            @answerLink = ko.observable(e.answerLink if e)
             @questions = ko.observableArray((if e then e.questions else [null]).map (q) -> new Question(q))
             @valid = ko.computed(@validate)
         validate: =>

@@ -24,18 +24,18 @@ object Application extends Controller {
     }
   }
 
-  def queryEnquete(adminKey: String) = Action {
-    AdminService.findByAdminKey(adminKey) match {
+  def queryEnquete(adminKey: String) = Action { implicit request =>
+    AdminService.findByAdminKey(adminKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
       case Some(e) => Ok(Json.obj("enquete" -> e))
       case None => NotFound("not found")
     }
   }
 
-  def updateEnquete(adminKey: String) = Action(parse.json) { request =>
+  def updateEnquete(adminKey: String) = Action(parse.json) { implicit request =>
     request.body.validate[EnqueteDto].map { dto =>
       AdminService.update(adminKey, dto) match {
         case true =>
-          AdminService.findByAdminKey(adminKey) match {
+          AdminService.findByAdminKey(adminKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
             case Some(e) => Ok(Json.obj("enquete" -> e))
             case None => NotFound("not found")
           }
@@ -46,8 +46,8 @@ object Application extends Controller {
     }
   }
 
-  def showEnqueteForAnswer(answerKey: String) = Action { request =>
-    AdminService.findByAnswerKey(answerKey) match {
+  def showEnqueteForAnswer(answerKey: String) = Action { implicit request =>
+    AdminService.findByAnswerKey(answerKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
       case Some(e) =>
         request.cookies.get("k") match {
           case Some(_) => Ok(views.html.answer(e, answerKey))

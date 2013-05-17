@@ -18,6 +18,7 @@ object AdminService {
 
   case class EnqueteDto(title: String,
                         description: Option[String],
+                        answerLink: String,
                         questions: List[QuestionDto])
 
   def create(dto: EnqueteDto): String = DB.withTransaction { implicit session =>
@@ -38,19 +39,23 @@ object AdminService {
     adminKey
   }
 
-  def findByAdminKey(adminKey: String): Option[EnqueteDto] = DB.withTransaction { implicit session =>
-    Enquetes.findByAdminKey(adminKey).map { case (eId, title, description, _, _) =>
+  def findByAdminKey(adminKey: String,
+                     answerKeyToLink: (String) => String
+                     ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
+    Enquetes.findByAdminKey(adminKey).map { case (eId, title, description, answerKey, _) =>
       val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
         val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
           QuestionOptionDto(Some(oId), oDescription)
         }
         QuestionDto(Some(qId), qDescription, answerType, options)
       }
-      EnqueteDto(title, description, questions)
+      EnqueteDto(title, description, answerKeyToLink(answerKey), questions)
     }
   }
 
-  def findByAnswerKey(answerKey: String): Option[EnqueteDto] = DB.withTransaction { implicit session =>
+  def findByAnswerKey(answerKey: String,
+                      answerKeyToLink: (String) => String
+                      ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
     Enquetes.findByAnswerKey(answerKey).map { case (eId, title, description, _, _) =>
       val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
         val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
@@ -58,7 +63,7 @@ object AdminService {
         }
         QuestionDto(Some(qId), qDescription, answerType, options)
       }
-      EnqueteDto(title, description, questions)
+      EnqueteDto(title, description, answerKeyToLink(answerKey), questions)
     }
   }
 
