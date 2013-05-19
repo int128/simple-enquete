@@ -1,5 +1,6 @@
 package controllers
 
+import models._
 import services._
 import services.AdminService._
 import play.api.mvc._
@@ -18,14 +19,14 @@ object Application extends Controller {
 
   def createEnquete = Action(parse.json) { request =>
     request.body.validate[EnqueteDto].map { dto =>
-      Ok(Json.obj("adminKey" -> AdminService.create(dto)))
+      Ok(Json.obj("adminKey" -> AdminService.create(dto).value))
     }.recoverTotal { e =>
       BadRequest(Json.obj("error" -> JsError.toFlatJson(e)))
     }
   }
 
   def queryEnquete(adminKey: String) = Action { implicit request =>
-    AdminService.findByAdminKey(adminKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
+    AdminService.findByAdminKey(AdminKey(adminKey), showEnqueteForAnswerURL) match {
       case Some(e) => Ok(Json.obj("enquete" -> e))
       case None => NotFound("not found")
     }
@@ -33,9 +34,9 @@ object Application extends Controller {
 
   def updateEnquete(adminKey: String) = Action(parse.json) { implicit request =>
     request.body.validate[EnqueteDto].map { dto =>
-      AdminService.update(adminKey, dto) match {
+      AdminService.update(AdminKey(adminKey), dto) match {
         case true =>
-          AdminService.findByAdminKey(adminKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
+          AdminService.findByAdminKey(AdminKey(adminKey), showEnqueteForAnswerURL) match {
             case Some(e) => Ok(Json.obj("enquete" -> e))
             case None => NotFound("not found")
           }
@@ -47,7 +48,7 @@ object Application extends Controller {
   }
 
   def showEnqueteForAnswer(answerKey: String) = Action { implicit request =>
-    AdminService.findByAnswerKey(answerKey, routes.Application.showEnqueteForAnswer(_).absoluteURL()) match {
+    AdminService.findByAnswerKey(AnswerKey(answerKey), showEnqueteForAnswerURL) match {
       case Some(e) =>
         request.cookies.get("k") match {
           case Some(_) => Ok(views.html.answer(e, answerKey))
@@ -62,7 +63,7 @@ object Application extends Controller {
       case Some(cookieKey) => {
         val uid = UUID.fromString(cookieKey.value)
         val answers = request.body.map { case (qId, oIds) => (qId.toInt, oIds) }
-        AnsweringService.answer(answerKey, uid, answers) match {
+        AnsweringService.answer(AnswerKey(answerKey), uid, answers) match {
           case Left(Some(eId)) => Ok(eId.toString)
           case Left(None) => NotFound("not found")
           case Right(_) => BadRequest("bad request")
@@ -71,5 +72,8 @@ object Application extends Controller {
       case None => BadRequest("bad request")
     }
   }
+
+  def showEnqueteForAnswerURL(answerKey: AnswerKey)(implicit request: RequestHeader): String =
+    routes.Application.showEnqueteForAnswer(answerKey.value).absoluteURL()
 
 }

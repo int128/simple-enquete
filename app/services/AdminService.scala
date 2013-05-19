@@ -4,7 +4,6 @@ import models._
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
 import play.api.Play.current
-import scala.util._
 
 object AdminService {
 
@@ -21,12 +20,10 @@ object AdminService {
                         answerLink: String,
                         questions: List[QuestionDto])
 
-  def create(dto: EnqueteDto): String = DB.withTransaction { implicit session =>
-    // generates random string from 16 to 32 characters
-    val answerKey = Random.alphanumeric.take(Random.nextInt(16) + 16).mkString
-    val adminKey = Random.alphanumeric.take(Random.nextInt(16) + 16).mkString
+  def create(dto: EnqueteDto): AdminKey = DB.withTransaction { implicit session =>
+    val adminKey = AdminKey.random()
 
-    val eId = Enquetes.ins.insert(dto.title, dto.description, answerKey, adminKey)
+    val eId = Enquetes.ins.insert(dto.title, dto.description, AnswerKey.random(), adminKey)
 
     val qIds = Questions.ins.insertAll(
       dto.questions.zipWithIndex.map { case (q, qIndex) => (eId, qIndex, q.description, q.answerType) }: _*)
@@ -39,8 +36,8 @@ object AdminService {
     adminKey
   }
 
-  def findByAdminKey(adminKey: String,
-                     answerKeyToLink: (String) => String
+  def findByAdminKey(adminKey: AdminKey,
+                     answerKeyToLink: (AnswerKey) => String
                      ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
     Enquetes.findByAdminKey(adminKey).map { case (eId, title, description, answerKey, _) =>
       val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
@@ -53,8 +50,8 @@ object AdminService {
     }
   }
 
-  def findByAnswerKey(answerKey: String,
-                      answerKeyToLink: (String) => String
+  def findByAnswerKey(answerKey: AnswerKey,
+                      answerKeyToLink: (AnswerKey) => String
                       ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
     Enquetes.findByAnswerKey(answerKey).map { case (eId, title, description, _, _) =>
       val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
@@ -67,7 +64,7 @@ object AdminService {
     }
   }
 
-  def update(adminKey: String, dto: EnqueteDto): Boolean = DB.withTransaction { implicit session =>
+  def update(adminKey: AdminKey, dto: EnqueteDto): Boolean = DB.withTransaction { implicit session =>
     Enquetes.findIdByAdminKey(adminKey) match {
       case Some(eId) =>
         Enquetes.updateQuery(eId).update((dto.title, dto.description))

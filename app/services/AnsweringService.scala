@@ -8,7 +8,7 @@ import java.util.UUID
 
 object AnsweringService {
 
-  def answer(answerKey: String, uid: UUID, questionAndAnswers: Map[Int, Seq[String]]): Either[Option[Int], Unit] = DB.withTransaction {
+  def answer(answerKey: AnswerKey, uid: UUID, questionAndAnswers: Map[Int, Seq[String]]): Either[Option[Int], Unit] = DB.withTransaction {
     implicit session =>
 
     Enquetes.findIdByAnswerKey(answerKey) match {
