@@ -12,12 +12,12 @@ object AdminService {
 
   case class QuestionDto(id: Option[Int],
                          description: String,
-                         answerType: String,
+                         questionType: String,
                          questionOptions: List[QuestionOptionDto])
 
   case class EnqueteDto(title: String,
                         description: Option[String],
-                        answerLink: String,
+                        answerLink: Option[String],
                         questions: List[QuestionDto])
 
   def create(dto: EnqueteDto): AdminKey = DB.withTransaction { implicit session =>
@@ -26,7 +26,9 @@ object AdminService {
     val eId = Enquetes.ins.insert(dto.title, dto.description, AnswerKey.random(), adminKey)
 
     val qIds = Questions.ins.insertAll(
-      dto.questions.zipWithIndex.map { case (q, qIndex) => (eId, qIndex, q.description, q.answerType) }: _*)
+      dto.questions.zipWithIndex.map { case (q, qIndex) =>
+        (eId, qIndex, q.description, QuestionType.byName(q.questionType))
+      }: _*)
 
     QuestionOptions.ins.insertAll(
       dto.questions zip qIds flatMap { case (q, qId) =>
@@ -40,13 +42,13 @@ object AdminService {
                      answerKeyToLink: (AnswerKey) => String
                      ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
     Enquetes.findByAdminKey(adminKey).map { case (eId, title, description, answerKey, _) =>
-      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
+      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, questionType) =>
         val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
           QuestionOptionDto(Some(oId), oDescription)
         }
-        QuestionDto(Some(qId), qDescription, answerType, options)
+        QuestionDto(Some(qId), qDescription, questionType.name, options)
       }
-      EnqueteDto(title, description, answerKeyToLink(answerKey), questions)
+      EnqueteDto(title, description, Some(answerKeyToLink(answerKey)), questions)
     }
   }
 
@@ -54,13 +56,13 @@ object AdminService {
                       answerKeyToLink: (AnswerKey) => String
                       ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
     Enquetes.findByAnswerKey(answerKey).map { case (eId, title, description, _, _) =>
-      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, answerType) =>
+      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, questionType) =>
         val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
           QuestionOptionDto(Some(oId), oDescription)
         }
-        QuestionDto(Some(qId), qDescription, answerType, options)
+        QuestionDto(Some(qId), qDescription, questionType.name, options)
       }
-      EnqueteDto(title, description, answerKeyToLink(answerKey), questions)
+      EnqueteDto(title, description, Some(answerKeyToLink(answerKey)), questions)
     }
   }
 
@@ -72,13 +74,13 @@ object AdminService {
         dto.questions.zipWithIndex.foreach { case (q, qIndex) =>
           q.id match {
             case None =>
-              val qId = Questions.ins.insert(eId, qIndex, q.description, q.answerType)
+              val qId = Questions.ins.insert(eId, qIndex, q.description, QuestionType.byName(q.questionType))
 
               QuestionOptions.ins.insertAll(
                 q.questionOptions.zipWithIndex.map { case (o, oIndex) => (eId, qId, oIndex, o.description) }: _*)
 
             case Some(qId) =>
-              Questions.updateQuery(eId, qId).update((qIndex, q.description, q.answerType))
+              Questions.updateQuery(eId, qId).update((qIndex, q.description, QuestionType.byName(q.questionType)))
 
               q.questionOptions.zipWithIndex.foreach { case (o, oIndex) =>
                 o.id match {
