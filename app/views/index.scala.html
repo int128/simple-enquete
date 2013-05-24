@@ -17,10 +17,14 @@
         <div class="questions" data-bind="foreach: questions">
             <div class="question">
                 <div class="question-header">
-                    <span class="label">Question <span data-bind="text: $index() + 1"></span></span>
-                    <a href="#" title="削除" data-bind="click: $parent.removeQuestion">
-                        <i class="icon-remove"></i>
-                    </a>
+                    <ul class="breadcrumb">
+                        <li>Question <span data-bind="text: $index() + 1"></span></li>
+                        <li class="pull-right">
+                            <a href="#" title="削除" data-bind="click: $parent.removeQuestion">
+                                <i class="icon-remove"></i>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
                 <div class="row">
                     <div class="span6">
