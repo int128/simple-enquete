@@ -34,6 +34,12 @@
                                   data-bind="value: description"></textarea>
                     </div>
                     <div class="span6">
+                        <select data-bind="value: questionType">
+                            <option value="SingleSelection">単一選択の質問</option>
+                            <option value="MultipleSelection">複数選択の質問</option>
+                            <option value="Numeric">数値を入力してもらう質問</option>
+                            <option value="Text">自由記述の質問</option>
+                        </select>
                         <div class="questionOptions" data-bind="foreach: questionOptions">
                             <div>
                                 <input type="text"

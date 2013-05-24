@@ -23,7 +23,15 @@
             <div class="question">
                 <div class="question-header">
                     <ul class="breadcrumb">
-                        <li>Question <span data-bind="text: $index() + 1"></span></li>
+                        <li>Question <span data-bind="text: $index() + 1"></span> <span class="divider">:</span></li>
+                        <li>
+                            <span class="label label-info">
+                                <span data-bind="if: questionType() == 'SingleSelection'">単一選択の質問</span>
+                                <span data-bind="if: questionType() == 'MultipleSelection'">複数選択の質問</span>
+                                <span data-bind="if: questionType() == 'Numeric'">数値を入力してもらう質問</span>
+                                <span data-bind="if: questionType() == 'Text'">自由記述の質問</span>
+                            </span>
+                        </li>
                         <li class="pull-right">
                             <a href="#" title="削除" data-bind="click: $parent.removeQuestion">
                                 <i class="icon-remove"></i>
