@@ -51,12 +51,12 @@
         <button type="button" class="btn" data-bind="click: addQuestion">
             <i class="icon-plus"></i> 質問を追加する
         </button>
+    </div>
 
-        <form action="/" method="post" class="enquete-submit save">
-            <button type="submit" class="btn btn-block" data-bind="enable: valid">
-                アンケートを作る
-            </button>
-        </form>
+    <div class="enquete-submit save">
+        <button type="button" class="btn btn-block" data-bind="click: save, enable: canSave">
+            アンケートを作る
+        </button>
     </div>
 </div>
 

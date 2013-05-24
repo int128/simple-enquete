@@ -8,8 +8,8 @@
     <a target="_blank" data-bind="attr: {href: answerLink}, text: answerLink"></a>
 </div>
 
-<div class="enquete" data-bind="with: enquete">
-    <div class="drop-shadow">
+<div class="drop-shadow">
+    <div class="enquete" data-bind="with: enquete">
         <div><input type="text"
                     class="title input-block-level"
                     placeholder="タイトル"
@@ -56,12 +56,12 @@
         <button type="button" class="btn" data-bind="click: addQuestion">
             <i class="icon-plus"></i> 質問を追加する
         </button>
+    </div>
 
-        <form method="post" class="enquete-submit update" data-bind="attr: {action: location.href}">
-            <button type="submit" class="btn btn-block" data-bind="enable: valid">
-                更新する
-            </button>
-        </form>
+    <div class="enquete-submit update">
+        <button type="button" class="btn btn-block" data-bind="click: update, enable: canUpdate">
+            更新する
+        </button>
     </div>
 </div>
 

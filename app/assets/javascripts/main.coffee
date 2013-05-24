@@ -64,35 +64,28 @@ $ ->
             @enquete = ko.observable()
             @status = ko.observable(null)
             ko.computed => if @enquete() then @status(null)
-        clear: =>
-            @enquete(null)
-            @status(null)
+            @canSave = ko.computed => @enquete().valid() if @enquete()
+            @canUpdate = ko.computed => @enquete().valid() if @enquete()
+        load: (adminKey) =>
+            Enquetes.findByAdminKey(adminKey).done (d) =>
+                @enquete(new Enquete(d.enquete))
+        save: =>
+            Enquetes.create(app.enquete()).done (d) =>
+                location.href = "/admin##{d.adminKey}"
+        update: =>
+            adminKey = location.hash.substring(1)
+            Enquetes.update(adminKey, @enquete()).done (d) =>
+                @enquete(new Enquete(d.enquete))
+                @status(200)
+        route: =>
+            switch location.pathname
+                when '/'      then @enquete(new Enquete())
+                when '/admin' then @load(location.hash.substring(1))
 
     ko.applyBindings(app = new App())
+    app.route()
 
     $(document).ajaxStart -> $('.loading').show()
     $(document).ajaxStop  -> $('.loading').fadeOut()
     $(document).ajaxError (e, xhr) -> app.status(xhr.status)
     $('.notification').click -> $(@).fadeOut()
-
-    Sammy ->
-        @get  '/', ->
-            app.enquete(new Enquete())
-        @post '/', ->
-            Enquetes.create(app.enquete()).done (d) =>
-                @redirect("/admin##{d.adminKey}")
-            false
-        @get '/admin#:adminKey', ->
-            app.clear()
-            Enquetes.findByAdminKey(@params.adminKey).done (d) =>
-                app.enquete(new Enquete(d.enquete))
-        @post '/admin#:adminKey', ->
-            Enquetes.update(@params.adminKey, app.enquete()).done (d) =>
-                app.enquete(new Enquete(d.enquete))
-                app.status(200)
-            false
-        @get  '', ->
-            app.clear()
-        @post '', ->
-            app.clear()
-    .run()
