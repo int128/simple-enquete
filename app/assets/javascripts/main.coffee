@@ -32,9 +32,9 @@ $ ->
         constructor: (q) ->
             @id = q.id if q
             @description = ko.observable(q.description if q)
-            @questionType = ko.observable(if q then q.questionType else 'SingleSelection')
+            @questionType = ko.observable(q.questionType if q)
             @newQuestionOption = ko.observable()
-            @_questionOptions = (if q then q.questionOptions else []).map (o) -> new QuestionOption(o)
+            @_questionOptions = if q and q.questionOptions then q.questionOptions.map (o) -> new QuestionOption(o) else []
             @questionOptions = ko.computed(@rearrangeQuestionOptions)
             @valid = ko.computed(@validate)
         validate: =>
@@ -50,12 +50,12 @@ $ ->
             @title = ko.observable(e.title if e)
             @description = ko.observable(e.description if e)
             @answerLink = ko.observable(e.answerLink if e)
-            @questions = ko.observableArray((if e then e.questions else [null]).map (q) -> new Question(q))
+            @questions = ko.observableArray(if e then e.questions.map (q) -> new Question(q) else [])
             @valid = ko.computed(@validate)
         validate: =>
             @title() and @questions().every (q) -> q.valid()
-        addQuestion: =>
-            @questions.push(new Question())
+        addQuestion: (questionType) =>
+            () => @questions.push(new Question(questionType: questionType))
         removeQuestion: (q) =>
             @questions.remove(q)
 

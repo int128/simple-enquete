@@ -1,30 +1,35 @@
-@(e: services.EnqueteService.EnqueteDto, answerKey: String)
+@(e: services.AdminService.EnqueteDto, answerKey: String)
 
 @import helper._
 
 @main(e.title) {
-<div class="my-header">
-    <h1>@e.title</h1>
-    <p class="lead">@e.description</p>
-</div>
+<div class="drop-shadow">
+    <div class="page-header"><h1>@e.title</h1></div>
+    <p>@e.description</p>
 
-<div class="enquete">
-    <div class="drop-shadow">
-        @form(action = routes.Application.answerEnquete(answerKey)) {
-            @for(q <- e.questions) {
-                <h2>@q.description</h2>
-                @for(o <- q.questionOptions) {
-                    <label class="radio">
-                        <input type="radio" class="radio" name="@q.id" value="@o.id" />
-                        @o.description
-                    </label>
-                }
+    @form(action = routes.Application.answerEnquete(answerKey)) {
+        <div class="enquete">
+            @for((q, qi) <- e.questions.zipWithIndex) {
+                <div class="question">
+                    <div class="question-header">
+                        <ul class="breadcrumb">
+                            <li><span class="label label-info">Q@(qi+1)</span> <span class="divider">:</span></li>
+                            <li>@q.description</li>
+                        </ul>
+                    </div>
+                    @for(o <- q.questionOptions) {
+                        <label class="radio">
+                            <input type="radio" class="radio" name="@q.id" value="@o.id" />
+                            @o.description
+                        </label>
+                    }
+                </div>
             }
-            <div class="enquete-submit">
-                <button type="submit" class="btn btn-block">送る</button>
-            </div>
-        }
-    </div>
+        </div>
+        <div class="enquete-submit">
+            <button type="submit" class="btn btn-block">送る</button>
+        </div>
+    }
 </div>
 
 <div class="my-footer">

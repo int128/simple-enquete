@@ -18,11 +18,10 @@
             <div class="question">
                 <div class="question-header">
                     <ul class="breadcrumb">
-                        <li>Question <span data-bind="text: $index() + 1"></span></li>
+                        <li>Q<span data-bind="text: $index() + 1"></span> <span class="divider">:</span></li>
+                        <li><span class="label label-info" data-bind="text: QuestionType[questionType()]"></span></li>
                         <li class="pull-right">
-                            <a href="#" title="削除" data-bind="click: $parent.removeQuestion">
-                                <i class="icon-remove"></i>
-                            </a>
+                            <a href="#" class="close" title="削除" data-bind="click: $parent.removeQuestion">&times;</a>
                         </li>
                     </ul>
                 </div>
@@ -34,12 +33,6 @@
                                   data-bind="value: description"></textarea>
                     </div>
                     <div class="span6">
-                        <select data-bind="value: questionType">
-                            <option value="SingleSelection">単一選択の質問</option>
-                            <option value="MultipleSelection">複数選択の質問</option>
-                            <option value="Numeric">数値を入力してもらう質問</option>
-                            <option value="Text">自由記述の質問</option>
-                        </select>
                         <div class="questionOptions" data-bind="foreach: questionOptions">
                             <div>
                                 <input type="text"
@@ -58,9 +51,16 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn" data-bind="click: addQuestion">
-            <i class="icon-plus"></i> 質問を追加する
-        </button>
+        <div class="question">
+            <ul class="nav nav-tabs nav-stacked" data-bind="foreach: Object.keys(QuestionType)">
+                <li>
+                    <a href="#" data-bind="click: $parent.addQuestion($data)">
+                        <i class="icon-chevron-right"></i>
+                        <span data-bind="text: QuestionType[$data]"></span>を追加する
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <div class="enquete-submit save">
