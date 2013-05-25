@@ -14,14 +14,14 @@
         </div>
 
         <div class="loading" style="display: none;"></div>
-        <div class="notification" data-bind="visible: status() == 200">
+        <div class="notification" style="display: none;" data-bind="visible: status() == 200">
             <h4>更新しました</h4>
         </div>
-        <div class="notification" data-bind="visible: status() == 404">
+        <div class="notification" style="display: none;" data-bind="visible: status() == 404">
             <h4>見つかりません</h4>
             URLを確認してください。
         </div>
-        <div class="notification" data-bind="visible: status() == 500">
+        <div class="notification" style="display: none;" data-bind="visible: status() == 500">
             <h4>エラーです</h4>
             もう一度試してみてください。
         </div>
