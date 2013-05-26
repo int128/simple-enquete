@@ -1,4 +1,5 @@
 @(title: String)(content: Html)
+@import play.api.libs.json.Json
 
 <!DOCTYPE html>
 
@@ -27,12 +28,15 @@
         </div>
 
         <script type="text/javascript">
-var QuestionType = {
-    SingleSelection: '単一選択の質問',
-    MultipleSelection: '複数選択の質問',
-    Numeric: '数値を入力してもらう質問',
-    Text: '自由記述の質問'
-};
+var QuestionType = @Html(Json.stringify(Json.toJson(
+    models.QuestionType.values.map { v =>
+        (v.name, v match {
+            case models.SingleSelection   => "単一選択の質問"
+            case models.MultipleSelection => "複数選択の質問"
+            case models.Numeric           => "数値を入力してもらう質問"
+            case models.Text              => "自由記述の質問"
+        })
+    }.toMap)));
         </script>
 
         <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
