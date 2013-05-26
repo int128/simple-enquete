@@ -66,6 +66,8 @@ $ ->
             ko.computed => if @enquete() then @status(null)
             @canSave = ko.computed => @enquete().valid() if @enquete()
             @canUpdate = ko.computed => @enquete().valid() if @enquete()
+        blank: () =>
+            @enquete(new Enquete())
         load: (adminKey) =>
             Enquetes.findByAdminKey(adminKey).done (d) =>
                 @enquete(new Enquete(d.enquete))
@@ -77,13 +79,20 @@ $ ->
             Enquetes.update(adminKey, @enquete()).done (d) =>
                 @enquete(new Enquete(d.enquete))
                 @status(200)
+
+    class Router
         route: =>
             switch location.pathname
-                when '/'      then @enquete(new Enquete())
-                when '/admin' then @load(location.hash.substring(1))
+                when '/'
+                    app = new App()
+                    app.blank()
+                    ko.applyBindings(app)
+                when '/admin'
+                    app = new App()
+                    app.load(location.hash.substring(1))
+                    ko.applyBindings(app)
 
-    ko.applyBindings(app = new App())
-    app.route()
+    new Router().route()
 
     $(document).ajaxStart -> $('.loading').show()
     $(document).ajaxStop  -> $('.loading').fadeOut()
