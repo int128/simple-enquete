@@ -24,17 +24,17 @@
                 <div class="question-header">
                     <ul class="breadcrumb">
                         <li>Q<span data-bind="text: $index() + 1"></span> <span class="divider">:</span></li>
-                        <li><span class="label label-info" data-bind="text: QuestionType[questionType()]"></span></li>
+                        <li><span class="label label-info" data-bind="text: QuestionType[questionType()].description"></span></li>
                         <li class="pull-right">
                             <a href="#" class="close" title="削除" data-bind="click: $parent.removeQuestion">&times;</a>
                         </li>
                     </ul>
                 </div>
-                <div class="row">
+                <div class="row" data-bind="if: questionType() == QuestionType.SingleSelection.name">
                     <div class="span6">
                         <textarea class="input-block-level"
                                   rows="5"
-                                  placeholder="質問"
+                                  placeholder="よかったものを一つ選んでください"
                                   data-bind="value: description"></textarea>
                     </div>
                     <div class="span6">
@@ -54,6 +54,50 @@
                         </div>
                     </div>
                 </div>
+                <div class="row" data-bind="if: questionType() == QuestionType.MultipleSelection.name">
+                    <div class="span6">
+                        <textarea class="input-block-level"
+                                  rows="5"
+                                  placeholder="よかったものをすべて選んでください"
+                                  data-bind="value: description"></textarea>
+                    </div>
+                    <div class="span6">
+                        <div class="questionOptions" data-bind="foreach: questionOptions">
+                            <div>
+                                <input type="text"
+                                       class="input-block-level"
+                                       placeholder="選択肢"
+                                       data-bind="value: description"/>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="text"
+                                   class="input-block-level"
+                                   placeholder="新しい選択肢"
+                                   data-bind="value: newQuestionOption"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" data-bind="if: questionType() == QuestionType.Numeric.name">
+                    <div class="span6">
+                        <textarea class="input-block-level"
+                                  rows="5"
+                                  placeholder="100点満点で点数を付けてください"
+                                  data-bind="value: description"></textarea>
+                    </div>
+                    <div class="span6">
+                    </div>
+                </div>
+                <div class="row" data-bind="if: questionType() == QuestionType.Text.name">
+                    <div class="span6">
+                        <textarea class="input-block-level"
+                                  rows="5"
+                                  placeholder="感想や意見をどうぞ"
+                                  data-bind="value: description"></textarea>
+                    </div>
+                    <div class="span6">
+                    </div>
+                </div>
             </div>
         </div>
         <div class="question">
@@ -61,7 +105,7 @@
                 <li>
                     <a href="#" data-bind="click: $parent.addQuestion($data)">
                         <i class="icon-chevron-right"></i>
-                        <span data-bind="text: QuestionType[$data]"></span>を追加する
+                        <span data-bind="text: QuestionType[$data].description"></span>を追加する
                     </a>
                 </li>
             </ul>
