@@ -1,14 +1,10 @@
 @main("シンプル☆アンケート") {
-<div class="my-header">
-    <h1>シンプル☆アンケート</h1>
-</div>
-
-<div class="enquete-metadata" data-bind="with: enquete">
-    <div><strong>回答ページのリンク</strong></div>
-    <a target="_blank" data-bind="attr: {href: answerLink}, text: answerLink"></a>
-</div>
-
 <div class="drop-shadow">
+    <div class="enquete-metadata" data-bind="with: enquete">
+        <div><strong>回答ページのリンク</strong></div>
+        <a target="_blank" data-bind="attr: {href: answerLink}, text: answerLink"></a>
+    </div>
+
     <div class="enquete" data-bind="with: enquete">
         <div><input type="text"
                     class="title input-block-level"
