@@ -6,13 +6,13 @@
     </div>
 
     <div class="enquete" data-bind="with: enquete">
-        <div><input type="text"
-                    class="title input-block-level"
-                    placeholder="タイトル"
-                    data-bind="value: title"/></div>
+        <div class="page-header"><input type="text"
+                                        class="title input-block-level"
+                                        placeholder="アンケートのタイトル"
+                                        data-bind="value: title"/></div>
         <div><textarea class="description input-block-level"
                        rows="2"
-                       placeholder="概要"
+                       placeholder="アンケートの説明"
                        data-bind="value: description"></textarea></div>
 
         <div class="questions" data-bind="foreach: questions">
@@ -113,9 +113,5 @@
             更新する
         </button>
     </div>
-</div>
-
-<div class="my-footer">
-    simple enquete service &copy; hidetake.org, 2013.
 </div>
 }
