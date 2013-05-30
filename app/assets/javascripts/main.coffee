@@ -103,7 +103,7 @@ $ ->
             Enquetes.findByAdminKey(adminKey).done (d) =>
                 @enquete(new Enquete(d.enquete))
         save: =>
-            Enquetes.create(app.enquete()).done (d) =>
+            Enquetes.create(@enquete()).done (d) =>
                 location.href = "/admin##{d.adminKey}"
         update: =>
             adminKey = location.hash.substring(1)
@@ -111,21 +111,22 @@ $ ->
                 @enquete(new Enquete(d.enquete))
                 @status(200)
 
-    class Router
-        route: =>
+    class Controller
+        route: ->
             switch location.pathname
                 when '/'
                     app = new App()
                     app.blank()
-                    ko.applyBindings(app)
+                    @register(app)
                 when '/admin'
                     app = new App()
                     app.load(location.hash.substring(1))
-                    ko.applyBindings(app)
+                    @register(app)
+        register: (app) ->
+            ko.applyBindings(app)
+            $(document).ajaxStart -> $('.loading').show()
+            $(document).ajaxStop  -> $('.loading').fadeOut()
+            $(document).ajaxError (e, xhr) -> app.status(xhr.status)
+            $('.notification').click -> $(@).fadeOut()
 
-    new Router().route()
-
-    $(document).ajaxStart -> $('.loading').show()
-    $(document).ajaxStop  -> $('.loading').fadeOut()
-    $(document).ajaxError (e, xhr) -> app.status(xhr.status)
-    $('.notification').click -> $(@).fadeOut()
+    new Controller().route()
