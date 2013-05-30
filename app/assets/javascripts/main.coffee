@@ -32,7 +32,15 @@ $ ->
         constructor: (q) ->
             @id = q.id if q
             @description = ko.observable(q.description if q)
-            @questionType = ko.observable(q.questionType if q)
+        @create: (questionType, q) -> switch questionType
+            when QuestionType.SingleSelection then new SingleSelectionQuestion(q)
+            when QuestionType.MultipleSelection then new MultipleSelectionQuestion(q)
+            when QuestionType.Numeric then new NumericQuestion(q)
+            when QuestionType.Text then new TextQuestion(q)
+
+    class SelectionQuestion extends Question
+        constructor: (q) ->
+            super(q)
             @newQuestionOption = ko.observable()
             @_questionOptions = if q and q.questionOptions then q.questionOptions.map (o) -> new QuestionOption(o) else []
             @questionOptions = ko.computed(@rearrangeQuestionOptions)
@@ -45,17 +53,40 @@ $ ->
                 @newQuestionOption(null)
             @_questionOptions = @_questionOptions.filter (qo) -> qo.valid()
 
+    class SingleSelectionQuestion extends SelectionQuestion
+        questionType: QuestionType.SingleSelection
+
+    class MultipleSelectionQuestion extends SelectionQuestion
+        questionType: QuestionType.MultipleSelection
+
+    class NumericQuestion extends Question
+        questionType: QuestionType.Numeric
+        constructor: (q) ->
+            super(q)
+            @minValue = ko.observable(q?.minValue)
+            @maxValue = ko.observable(q?.maxValue)
+            @valid = ko.computed(@validate)
+        validate: =>
+            @description() #and...
+
+    class TextQuestion extends Question
+        questionType: QuestionType.Text
+        constructor: (q) ->
+            super(q)
+            @valid = ko.computed(@validate)
+        validate: => @description()
+
     class Enquete
         constructor: (e) ->
             @title = ko.observable(e.title if e)
             @description = ko.observable(e.description if e)
             @answerLink = ko.observable(e.answerLink if e)
-            @questions = ko.observableArray(if e then e.questions.map (q) -> new Question(q) else [])
+            @questions = ko.observableArray(if e then e.questions.map (q) -> Question.create(QuestionType[q.questionType], q) else [])
             @valid = ko.computed(@validate)
         validate: =>
             @title() and @questions().every (q) -> q.valid()
         addQuestion: (questionType) =>
-            () => @questions.push(new Question(questionType: questionType))
+            () => @questions.push(Question.create(questionType))
         removeQuestion: (q) =>
             @questions.remove(q)
 
