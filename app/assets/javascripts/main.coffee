@@ -22,16 +22,16 @@ $ ->
 
     class QuestionOption
         constructor: (qo) ->
-            @id = qo.id if qo
-            @description = ko.observable(qo.description if qo)
+            @id = qo?.id
+            @description = ko.observable(qo?.description)
             @valid = ko.computed(@validate)
         validate: =>
             Boolean(@description())
 
     class Question
         constructor: (q) ->
-            @id = q.id if q
-            @description = ko.observable(q.description if q)
+            @id = q?.id
+            @description = ko.observable(q?.description)
         @create: (questionType, q) -> switch questionType
             when QuestionType.SingleSelection then new SingleSelectionQuestion(q)
             when QuestionType.MultipleSelection then new MultipleSelectionQuestion(q)
@@ -42,7 +42,7 @@ $ ->
         constructor: (q) ->
             super(q)
             @newQuestionOption = ko.observable()
-            @_questionOptions = if q and q.questionOptions then q.questionOptions.map (o) -> new QuestionOption(o) else []
+            @_questionOptions = (q?.questionOptions ? []).map (o) -> new QuestionOption(o)
             @questionOptions = ko.computed(@rearrangeQuestionOptions)
             @valid = ko.computed(@validate)
         validate: =>
@@ -78,10 +78,10 @@ $ ->
 
     class Enquete
         constructor: (e) ->
-            @title = ko.observable(e.title if e)
-            @description = ko.observable(e.description if e)
-            @answerLink = ko.observable(e.answerLink if e)
-            @questions = ko.observableArray(if e then e.questions.map (q) -> Question.create(QuestionType[q.questionType], q) else [])
+            @title = ko.observable(e?.title)
+            @description = ko.observable(e?.description)
+            @answerLink = ko.observable(e?.answerLink)
+            @questions = ko.observableArray((e?.questions ? []).map (q) -> Question.create(QuestionType[q.questionType], q))
             @valid = ko.computed(@validate)
         validate: =>
             @title() and @questions().every (q) -> q.valid()
@@ -95,8 +95,8 @@ $ ->
             @enquete = ko.observable()
             @status = ko.observable(null)
             ko.computed => if @enquete() then @status(null)
-            @canSave = ko.computed => @enquete().valid() if @enquete()
-            @canUpdate = ko.computed => @enquete().valid() if @enquete()
+            @canSave = ko.computed => @enquete()?.valid()
+            @canUpdate = ko.computed => @enquete()?.valid()
         blank: () =>
             @enquete(new Enquete())
         load: (adminKey) =>
