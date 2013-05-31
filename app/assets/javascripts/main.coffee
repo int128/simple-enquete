@@ -5,20 +5,29 @@ $ ->
                 url: "/admin/#{adminKey}"
                 type: 'get'
                 dataType: 'json'
+            .pipe(Enquetes.fromAPIdata)
         @create: (enquete) ->
             $.ajax
                 url: '/'
                 type: 'post'
                 contentType: 'application/json; Charset=UTF-8'
-                data: ko.toJSON(enquete)
+                data: JSON.stringify(Enquetes.toAPIdata(enquete))
                 dataType: 'json'
         @update: (adminKey, enquete) ->
             $.ajax
                 url: "/admin/#{adminKey}"
                 type: 'post'
                 contentType: 'application/json; Charset=UTF-8'
-                data: ko.toJSON(enquete)
+                data: JSON.stringify(Enquetes.toAPIdata(enquete))
                 dataType: 'json'
+            .pipe(Enquetes.fromAPIdata)
+        @fromAPIdata: (d) ->
+            d.enquete.questions.forEach (q) -> q.questionType = QuestionType[q.questionType]
+            new Enquete(d.enquete)
+        @toAPIdata: (enquete) ->
+            d = ko.toJS(enquete)
+            d.questions.forEach (q) -> q.questionType = q.questionType.name
+            d
 
     class QuestionOption
         constructor: (qo) ->
@@ -33,7 +42,7 @@ $ ->
             @id = q?.id
             @description = ko.observable(q?.description)
         @create: (q) ->
-            Question.constructorOf(QuestionType[q.questionType])(q)
+            Question.constructorOf(q.questionType)(q)
         @constructorOf: (questionType) ->
             switch questionType
                 when QuestionType.SingleSelection   then (q) -> new SingleSelectionQuestion(q)
@@ -45,17 +54,16 @@ $ ->
     class SelectionQuestion extends Question
         constructor: (q) ->
             super(q)
+            questionOptionsArray = (q?.questionOptions ? []).map (o) -> new QuestionOption(o)
             @newQuestionOption = ko.observable()
-            @_questionOptions = (q?.questionOptions ? []).map (o) -> new QuestionOption(o)
-            @questionOptions = ko.computed(@rearrangeQuestionOptions)
+            @questionOptions = ko.computed =>
+                if @newQuestionOption()
+                    questionOptionsArray.push(new QuestionOption(description: @newQuestionOption()))
+                    @newQuestionOption(null)
+                questionOptionsArray = questionOptionsArray.filter (qo) -> qo.valid()
             @valid = ko.computed(@validate)
         validate: =>
             @description() and @questionOptions().length > 0
-        rearrangeQuestionOptions: =>
-            if @newQuestionOption()
-                @_questionOptions.push(new QuestionOption(description: @newQuestionOption()))
-                @newQuestionOption(null)
-            @_questionOptions = @_questionOptions.filter (qo) -> qo.valid()
 
     class SingleSelectionQuestion extends SelectionQuestion
         questionType: QuestionType.SingleSelection
@@ -104,15 +112,15 @@ $ ->
         blank: () =>
             @enquete(new Enquete())
         load: (adminKey) =>
-            Enquetes.findByAdminKey(adminKey).done (d) =>
-                @enquete(new Enquete(d.enquete))
+            Enquetes.findByAdminKey(adminKey).done (enquete) =>
+                @enquete(enquete)
         save: =>
             Enquetes.create(@enquete()).done (d) =>
                 location.href = "/admin##{d.adminKey}"
         update: =>
             adminKey = location.hash.substring(1)
-            Enquetes.update(adminKey, @enquete()).done (d) =>
-                @enquete(new Enquete(d.enquete))
+            Enquetes.update(adminKey, @enquete()).done (enquete) =>
+                @enquete(enquete)
                 @status(200)
 
     class Controller
