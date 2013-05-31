@@ -32,11 +32,15 @@ $ ->
         constructor: (q) ->
             @id = q?.id
             @description = ko.observable(q?.description)
-        @create: (questionType, q) -> switch questionType
-            when QuestionType.SingleSelection then new SingleSelectionQuestion(q)
-            when QuestionType.MultipleSelection then new MultipleSelectionQuestion(q)
-            when QuestionType.Numeric then new NumericQuestion(q)
-            when QuestionType.Text then new TextQuestion(q)
+        @create: (q) ->
+            Question.constructorOf(QuestionType[q.questionType])(q)
+        @constructorOf: (questionType) ->
+            switch questionType
+                when QuestionType.SingleSelection   then (q) -> new SingleSelectionQuestion(q)
+                when QuestionType.MultipleSelection then (q) -> new MultipleSelectionQuestion(q)
+                when QuestionType.Numeric           then (q) -> new NumericQuestion(q)
+                when QuestionType.Text              then (q) -> new TextQuestion(q)
+                else throw "unexpected question type: #{questionType}"
 
     class SelectionQuestion extends Question
         constructor: (q) ->
@@ -81,12 +85,12 @@ $ ->
             @title = ko.observable(e?.title)
             @description = ko.observable(e?.description)
             @answerLink = ko.observable(e?.answerLink)
-            @questions = ko.observableArray((e?.questions ? []).map (q) -> Question.create(QuestionType[q.questionType], q))
+            @questions = ko.observableArray((e?.questions ? []).map (q) -> Question.create(q))
             @valid = ko.computed(@validate)
         validate: =>
             @title() and @questions().every (q) -> q.valid()
         addQuestion: (questionType) =>
-            () => @questions.push(Question.create(questionType))
+            () => @questions.push(Question.constructorOf(questionType)())
         removeQuestion: (q) =>
             @questions.remove(q)
 
