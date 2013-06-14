@@ -2,7 +2,13 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 
-object Questions extends Table[(Int, Int, Int, String, QuestionType)]("question") {
+case class Question(enqueteId: Int,
+                    id: Int,
+                    order: Int,
+                    description: String,
+                    questionType: QuestionType)
+
+object Questions extends Table[Question]("question") {
 
   def enqueteId   = column[Int]("enquete_id")
   def id          = column[Int]("question_id", O.PrimaryKey, O.AutoInc)
@@ -12,7 +18,7 @@ object Questions extends Table[(Int, Int, Int, String, QuestionType)]("question"
 
   def fk = foreignKey("fk_question_enquete", enqueteId, Enquetes)(_.id)
 
-  def * = enqueteId ~ id ~ order ~ description ~ questionType
+  def * = enqueteId ~ id ~ order ~ description ~ questionType <> (Question, Question.unapply(_))
   def ins = enqueteId ~ order ~ description ~ questionType returning id
 
   implicit val questionTypeMapper = MappedTypeMapper.base[QuestionType, Int](_.code, QuestionType.byCode(_))

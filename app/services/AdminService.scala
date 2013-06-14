@@ -20,49 +20,86 @@ object AdminService {
                         answerLink: Option[String],
                         questions: List[QuestionDto])
 
-  def create(dto: EnqueteDto): AdminKey = DB.withTransaction { implicit session =>
-    val adminKey = AdminKey.random()
+  object Create {
+    case class QuestionOptionDto(description: String)
 
-    val eId = Enquetes.ins.insert(dto.title, dto.description, AnswerKey.random(), adminKey)
+    case class QuestionDto(description: String,
+                           questionType: String,
+                           questionOptions: List[QuestionOptionDto])
 
-    val qIds = Questions.ins.insertAll(
-      dto.questions.zipWithIndex.map { case (q, qIndex) =>
-        (eId, qIndex, q.description, QuestionType.byName(q.questionType))
-      }: _*)
+    case class EnqueteDto(title: String,
+                          description: Option[String],
+                          questions: List[QuestionDto])
 
-    QuestionOptions.ins.insertAll(
-      dto.questions zip qIds flatMap { case (q, qId) =>
-        q.questionOptions.zipWithIndex.map { case (o, oIndex) => (eId, qId, oIndex, o.description) }
-      }: _*)
+    def apply(dto: EnqueteDto): AdminKey = DB.withTransaction { implicit session =>
+      val enquete = Enquetes.insert(dto.title, dto.description)
 
-    adminKey
-  }
+      val qIds = Questions.ins.insertAll(
+        dto.questions.zipWithIndex.map { case (q, qIndex) =>
+          (enquete.id, qIndex, q.description, QuestionType.byName(q.questionType))
+        }: _*)
 
-  def findByAdminKey(adminKey: AdminKey,
-                     answerKeyToLink: (AnswerKey) => String
-                     ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
-    Enquetes.findByAdminKey(adminKey).map { case (eId, title, description, answerKey, _) =>
-      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, questionType) =>
-        val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
-          QuestionOptionDto(Some(oId), oDescription)
-        }
-        QuestionDto(Some(qId), qDescription, questionType.name, options)
-      }
-      EnqueteDto(title, description, Some(answerKeyToLink(answerKey)), questions)
+      QuestionOptions.ins.insertAll(
+        dto.questions zip qIds flatMap { case (q, qId) =>
+          q.questionOptions.zipWithIndex.map { case (o, oIndex) => (enquete.id, qId, oIndex, o.description) }
+        }: _*)
+
+      enquete.adminKey
     }
   }
 
-  def findByAnswerKey(answerKey: AnswerKey,
-                      answerKeyToLink: (AnswerKey) => String
-                      ): Option[EnqueteDto] = DB.withTransaction { implicit session =>
-    Enquetes.findByAnswerKey(answerKey).map { case (eId, title, description, _, _) =>
-      val questions = Questions.findById(eId).map { case (_, qId, _, qDescription, questionType) =>
-        val options = QuestionOptions.findById(eId, qId).map { case (_, _, oId, _, oDescription) =>
-          QuestionOptionDto(Some(oId), oDescription)
-        }
-        QuestionDto(Some(qId), qDescription, questionType.name, options)
+  object Find {
+    case class QuestionOptionDto(id: Int,
+                                 description: String)
+
+    case class QuestionDto(id: Int,
+                           description: String,
+                           questionType: String,
+                           questionOptions: List[QuestionOptionDto])
+
+    case class EnqueteDto(title: String,
+                          description: Option[String],
+                          answerLink: String,
+                          questions: List[QuestionDto])
+
+    def apply(adminKey: AdminKey, answerKeyToLink: (AnswerKey) => String): Option[EnqueteDto] = DB.withTransaction { implicit session =>
+      Enquetes.findByAdminKey(adminKey).map { enquete =>
+        EnqueteDto(
+          enquete.title,
+          enquete.description,
+          answerKeyToLink(enquete.answerKey),
+          Questions.findById(enquete.id).map { question =>
+            QuestionDto(
+              question.id,
+              question.description,
+              question.questionType.name,
+              QuestionOptions.findById(enquete.id, question.id).map { questionOption =>
+                QuestionOptionDto(
+                  questionOption.id,
+                  questionOption.description)
+              })
+          })
       }
-      EnqueteDto(title, description, Some(answerKeyToLink(answerKey)), questions)
+    }
+
+    def apply(answerKey: AnswerKey, answerKeyToLink: (AnswerKey) => String): Option[EnqueteDto] = DB.withTransaction { implicit session =>
+      Enquetes.findByAnswerKey(answerKey).map { enquete =>
+        EnqueteDto(
+          enquete.title,
+          enquete.description,
+          answerKeyToLink(enquete.answerKey),
+          Questions.findById(enquete.id).map { question =>
+            QuestionDto(
+              question.id,
+              question.description,
+              question.questionType.name,
+              QuestionOptions.findById(enquete.id, question.id).map { questionOption =>
+                QuestionOptionDto(
+                  questionOption.id,
+                  questionOption.description)
+              })
+          })
+      }
     }
   }
 

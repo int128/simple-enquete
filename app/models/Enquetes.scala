@@ -2,7 +2,13 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 
-object Enquetes extends Table[(Int, String, Option[String], AnswerKey, AdminKey)]("enquete") {
+case class Enquete(id: Int,
+                   title: String,
+                   description: Option[String],
+                   answerKey: AnswerKey,
+                   adminKey: AdminKey)
+
+object Enquetes extends Table[Enquete]("enquete") {
 
   def id          = column[Int]("enquete_id", O.PrimaryKey, O.AutoInc)
   def title       = column[String]("title")
@@ -10,11 +16,18 @@ object Enquetes extends Table[(Int, String, Option[String], AnswerKey, AdminKey)
   def answerKey   = column[AnswerKey]("answer_key")
   def adminKey    = column[AdminKey]("admin_key")
 
-  def * = id ~ title ~ description ~ answerKey ~ adminKey
+  def * = id ~ title ~ description ~ answerKey ~ adminKey <> (Enquete, Enquete.unapply(_))
   def ins = title ~ description ~ answerKey ~ adminKey returning id
 
   implicit val answerKeyTypeMapper = MappedTypeMapper.base[AnswerKey, String](_.value, AnswerKey(_))
   implicit val adminKeyTypeMapper = MappedTypeMapper.base[AdminKey, String](_.value, AdminKey(_))
+
+  def insert(title: String, description: Option[String]): Enquete = {
+    val adminKey = AdminKey.random()
+    val answerKey = AnswerKey.random()
+    val id = Enquetes.ins.insert(title, description, answerKey, adminKey)
+    Enquete(id, title, description, answerKey, adminKey)
+  }
 
   val findByAdminKeyQuery = for {
     adminKey <- Parameters[AdminKey]
