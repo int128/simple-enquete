@@ -27,10 +27,24 @@ object QuestionOptions extends Table[QuestionOption]("question_option") {
     o <- QuestionOptions if (o.enqueteId is enqueteId) && (o.questionId is questionId)
   } yield o
 
-  def findById(eId: Int, qId: Int)(implicit session: Session) = findByIdQuery(eId, qId).list
+  def insert(enqueteId: Int,
+             questionId: Int,
+             order: Int,
+             description: String)(implicit s: Session): QuestionOption = {
+    val id = ins.insert(enqueteId, questionId, order, description)
+    QuestionOption(enqueteId, questionId, id, order, description)
+  }
 
-  def updateQuery(eId: Int, qId: Int, oId: Int) = for {
-    o <- QuestionOptions if (o.enqueteId is eId) && (o.questionId is qId) && (o.id is oId)
-  } yield (o.order ~ o.description)
+  def find(enqueteId: Int,
+           questionId: Int)(implicit s: Session): List[QuestionOption] = findByIdQuery(enqueteId, questionId).list
+
+  def update(enqueteId: Int,
+             questionId: Int,
+             questionOptionId: Int,
+             order: Int,
+             description: String)(implicit s: Session) = for {
+    o <- QuestionOptions
+    if (o.enqueteId is enqueteId) && (o.questionId is questionId) && (o.id is questionOptionId)
+  } yield o.order ~ o.description
 
 }

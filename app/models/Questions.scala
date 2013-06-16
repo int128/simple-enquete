@@ -6,7 +6,15 @@ case class Question(enqueteId: Int,
                     id: Int,
                     order: Int,
                     description: String,
-                    questionType: QuestionType)
+                    questionType: QuestionType) {
+
+  def questionOptions(implicit s: Session): List[QuestionOption] = QuestionOptions.find(enqueteId, id)
+
+  def fetch(implicit s: Session): FetchedQuestion = FetchedQuestion(this, questionOptions)
+
+}
+
+case class FetchedQuestion(question: Question, questionOptions: List[QuestionOption])
 
 object Questions extends Table[Question]("question") {
 
@@ -28,10 +36,19 @@ object Questions extends Table[Question]("question") {
     q <- Questions if q.enqueteId is enqueteId
   } yield q
 
-  def findById(eId: Int)(implicit session: Session) = findByIdQuery(eId).list
+  def insert(enqueteId: Int,
+             order: Int,
+             description: String,
+             questionType: QuestionType)(implicit s: Session): Question = {
+    val id = Questions.ins.insert(enqueteId, order, description, questionType)
+    Question(enqueteId, id, order, description, questionType)
+  }
 
-  def updateQuery(eId: Int, qId: Int) = for {
-    q <- Questions if (q.enqueteId is eId) && (q.id is qId)
-  } yield (q.order ~ q.description ~ q.questionType)
+  def find(enqueteId: Int)(implicit s: Session): List[Question] = findByIdQuery(enqueteId).list
+
+  def update(enqueteId: Int, questionId: Int, order: Int, description: String)(implicit s: Session) = for {
+    q <- Questions
+    if (q.enqueteId is enqueteId) && (q.id is questionId)
+  } yield order ~ description
 
 }

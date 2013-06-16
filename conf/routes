@@ -4,16 +4,15 @@
 
 # Creates an enquete
 GET     /                           controllers.Application.index
-POST    /                           controllers.Application.createEnquete
 
-GET     /admin                      controllers.Application.admin
-
-GET     /admin/:adminKey            controllers.Application.queryEnquete(adminKey: String)
-POST    /admin/:adminKey            controllers.Application.updateEnquete(adminKey: String)
+POST    /                           controllers.EnqueteController.create
+GET     /admin                      controllers.EnqueteController.admin
+GET     /admin/:adminKey            controllers.EnqueteController.get(adminKey: String)
+POST    /admin/:adminKey            controllers.EnqueteController.update(adminKey: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # Answer to the enquete
-GET     /:answerKey                 controllers.Application.showEnqueteForAnswer(answerKey: String)
-POST    /:answerKey                 controllers.Application.answerEnquete(answerKey: String)
+GET     /:answerKey                 controllers.AnsweringController.show(answerKey: String)
+POST    /:answerKey                 controllers.AnsweringController.answer(answerKey: String)

@@ -1,25 +1,25 @@
-@(e: services.AdminService.EnqueteDto, answerKey: String)
+@(e: models.FetchedEnquete)
 
 @import helper._
 
-@main(e.title) {
+@main(e.enquete.title) {
 <div class="drop-shadow">
-    <div class="page-header"><h1>@e.title</h1></div>
-    <p>@e.description</p>
+    <div class="page-header"><h1>@e.enquete.title</h1></div>
+    <p>@e.enquete.description</p>
 
-    @form(action = routes.Application.answerEnquete(answerKey)) {
+    @form(action = routes.AnsweringController.answer(e.enquete.answerKey.value)) {
         <div class="enquete">
             @for((q, qi) <- e.questions.zipWithIndex) {
                 <div class="question">
                     <div class="question-header">
                         <ul class="breadcrumb">
                             <li><span class="label label-info">Q@(qi+1)</span> <span class="divider">:</span></li>
-                            <li>@q.description</li>
+                            <li>@q.question.description</li>
                         </ul>
                     </div>
                     @for(o <- q.questionOptions) {
                         <label class="radio">
-                            <input type="radio" class="radio" name="@q.id" value="@o.id" />
+                            <input type="radio" class="radio" name="@q.question.id" value="@o.id" />
                             @o.description
                         </label>
                     }
