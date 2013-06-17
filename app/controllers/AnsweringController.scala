@@ -38,14 +38,14 @@ object AnsweringController extends Controller {
               givenQuestionIds == expectedQuestionIds match {
                 case true =>
                   questions.forall {
-                    case Question(_, qId, _, _, answerType) if answerType == "singleSelection" =>
+                    case Question(_, qId, _, _, answerType) if answerType == SingleSelection =>
                       // TODO: check if can toInt
                       questionAndAnswers.get(qId).fold(false)(_.length == 1)
 
                   } match {
                     case true =>
                       questions.map {
-                        case Question(_, qId, _, _, answerType) if answerType == "singleSelection" =>
+                        case Question(_, qId, _, _, answerType) if answerType == SingleSelection =>
                           SingleSelectionAnswers.create(SingleSelectionAnswer(uid, qId, questionAndAnswers(qId).head.toInt))
                       }
                       Ok(enquete.id.toString)
