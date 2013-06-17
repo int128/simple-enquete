@@ -50,21 +50,30 @@ object EnqueteController extends Controller {
   implicit val fEnqueteToUpdate = Json.format[EnqueteToUpdate]
 
   def create = Action(parse.json) { request =>
-    request.body.validate[EnqueteToCreate].map { dto =>
+    request.body.validate[EnqueteToCreate].map { enqueteToCreate =>
       DB.withTransaction { implicit session =>
-        val enquete = Enquetes.insert(dto.title, dto.description)
-        dto.questions.zipWithIndex.foreach { case (q, qIndex) =>
-          val question = Questions.insert(enquete.id, qIndex, q.description, QuestionType.byName(q.questionType))
-          q.questionOptions.zipWithIndex.foreach { case (o, oIndex) =>
-            QuestionOptions.insert(enquete.id, question.id, oIndex, o.description)
+        Enquetes.insert(enqueteToCreate.title, enqueteToCreate.description) match { case enquete =>
+          enqueteToCreate.questions.zipWithIndex.foreach { case (questionToCreate, questionIndex) =>
+            Questions.insert(
+              enquete.id,
+              questionIndex,
+              questionToCreate.description,
+              QuestionType.byName(questionToCreate.questionType)) match { case question =>
+              questionToCreate.questionOptions.zipWithIndex.foreach { case (questionOptionToCreate, questionOptionIndex) =>
+                QuestionOptions.insert(
+                  enquete.id,
+                  question.id,
+                  questionOptionIndex,
+                  questionOptionToCreate.description)
+              }
+            }
           }
+
+          Ok(Json.obj("adminKey" -> enquete.adminKey.value))
         }
-        enquete
-      } match {
-        case e => Ok(Json.obj("adminKey" -> e.adminKey.value))
       }
-    }.recoverTotal { e =>
-      BadRequest(Json.obj("error" -> JsError.toFlatJson(e)))
+    }.recoverTotal { error =>
+      BadRequest(Json.obj("error" -> JsError.toFlatJson(error)))
     }
   }
 
@@ -87,34 +96,58 @@ object EnqueteController extends Controller {
               })
           })
       } match {
-        case Some(e) => Ok(Json.obj("enquete" -> e))
+        case Some(enqueteResponse) => Ok(Json.obj("enquete" -> enqueteResponse))
         case None => NotFound("not found")
       }
     }
   }
 
   def update(adminKey: String) = Action(parse.json) { implicit request =>
-    request.body.validate[EnqueteToUpdate].map { dto =>
+    request.body.validate[EnqueteToUpdate].map { enqueteToUpdate =>
       DB.withTransaction { implicit session =>
         Enquetes.find(AdminKey(adminKey)) match {
           case Some(enquete) =>
-            Enquetes.update(enquete.id, dto.title, dto.description)
+            Enquetes.update(enquete.id, enqueteToUpdate.title, enqueteToUpdate.description)
 
-            dto.questions.zipWithIndex.foreach { case (q, qIndex) =>
-              q.id match {
+            enqueteToUpdate.questions.zipWithIndex.foreach { case (questionToUpdate, questionIndex) =>
+              questionToUpdate.id match {
                 case None =>
-                  val question = Questions.insert(enquete.id, qIndex, q.description, QuestionType.byName(q.questionType))
-                  q.questionOptions.zipWithIndex.foreach { case (o, oIndex) =>
-                    QuestionOptions.insert(enquete.id, question.id, oIndex, o.description)
+                  Questions.insert(
+                    enquete.id,
+                    questionIndex,
+                    questionToUpdate.description,
+                    QuestionType.byName(questionToUpdate.questionType)) match { case question =>
+                    questionToUpdate.questionOptions.zipWithIndex.foreach { case (questionOptionToUpdate, questionOptionIndex) =>
+                      QuestionOptions.insert(
+                        enquete.id,
+                        question.id,
+                        questionOptionIndex,
+                        questionOptionToUpdate.description)
+                    }
                   }
 
-                case Some(qId) =>
-                  Questions.update(enquete.id, qId, qIndex, q.description)
+                case Some(questionId) =>
+                  Questions.update(
+                    enquete.id,
+                    questionId,
+                    questionIndex,
+                    questionToUpdate.description)
+                  questionToUpdate.questionOptions.zipWithIndex.foreach { case (questionOptionToUpdate, questionOptionIndex) =>
+                    questionOptionToUpdate.id match {
+                      case None =>
+                        QuestionOptions.insert(
+                          enquete.id,
+                          questionId,
+                          questionOptionIndex,
+                          questionOptionToUpdate.description)
 
-                  q.questionOptions.zipWithIndex.foreach { case (o, oIndex) =>
-                    o.id match {
-                      case None =>      QuestionOptions.insert(enquete.id, qId, oIndex, o.description)
-                      case Some(oId) => QuestionOptions.update(enquete.id, qId, oId, oIndex, o.description)
+                      case Some(questionOptionId) =>
+                        QuestionOptions.update(
+                          enquete.id,
+                          questionId,
+                          questionOptionId,
+                          questionOptionIndex,
+                          questionOptionToUpdate.description)
                     }
                   }
               }
