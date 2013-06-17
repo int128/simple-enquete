@@ -52,25 +52,25 @@ object EnqueteController extends Controller {
   def create = Action(parse.json) { request =>
     request.body.validate[EnqueteToCreate].map { enqueteToCreate =>
       DB.withTransaction { implicit session =>
-        Enquetes.insert(enqueteToCreate.title, enqueteToCreate.description) match { case enquete =>
-          enqueteToCreate.questions.zipWithIndex.foreach { case (questionToCreate, questionIndex) =>
-            Questions.insert(
-              enquete.id,
-              questionIndex,
-              questionToCreate.description,
-              QuestionType.byName(questionToCreate.questionType)) match { case question =>
-              questionToCreate.questionOptions.zipWithIndex.foreach { case (questionOptionToCreate, questionOptionIndex) =>
-                QuestionOptions.insert(
-                  enquete.id,
-                  question.id,
-                  questionOptionIndex,
-                  questionOptionToCreate.description)
-              }
-            }
-          }
+        val enquete = Enquetes.insert(enqueteToCreate.title, enqueteToCreate.description)
 
-          Ok(Json.obj("adminKey" -> enquete.adminKey.value))
+        for ((questionToCreate, questionIndex) <- enqueteToCreate.questions.zipWithIndex) {
+          val question = Questions.insert(
+            enquete.id,
+            questionIndex,
+            questionToCreate.description,
+            QuestionType.byName(questionToCreate.questionType))
+
+          for ((questionOptionToCreate, questionOptionIndex) <- questionToCreate.questionOptions.zipWithIndex) {
+            QuestionOptions.insert(
+              enquete.id,
+              question.id,
+              questionOptionIndex,
+              questionOptionToCreate.description)
+          }
         }
+
+        Ok(Json.obj("adminKey" -> enquete.adminKey.value))
       }
     }.recoverTotal { error =>
       BadRequest(Json.obj("error" -> JsError.toFlatJson(error)))
@@ -95,10 +95,10 @@ object EnqueteController extends Controller {
                   questionOption.description)
               })
           })
-      } match {
-        case Some(enqueteResponse) => Ok(Json.obj("enquete" -> enqueteResponse))
-        case None => NotFound("not found")
       }
+    } match {
+      case Some(enqueteResponse) => Ok(Json.obj("enquete" -> enqueteResponse))
+      case None => NotFound("not found")
     }
   }
 
@@ -112,18 +112,18 @@ object EnqueteController extends Controller {
             enqueteToUpdate.questions.zipWithIndex.foreach { case (questionToUpdate, questionIndex) =>
               questionToUpdate.id match {
                 case None =>
-                  Questions.insert(
+                  val question = Questions.insert(
                     enquete.id,
                     questionIndex,
                     questionToUpdate.description,
-                    QuestionType.byName(questionToUpdate.questionType)) match { case question =>
-                    questionToUpdate.questionOptions.zipWithIndex.foreach { case (questionOptionToUpdate, questionOptionIndex) =>
-                      QuestionOptions.insert(
-                        enquete.id,
-                        question.id,
-                        questionOptionIndex,
-                        questionOptionToUpdate.description)
-                    }
+                    QuestionType.byName(questionToUpdate.questionType))
+
+                  for ((questionOptionToUpdate, questionOptionIndex) <- questionToUpdate.questionOptions.zipWithIndex) {
+                    QuestionOptions.insert(
+                      enquete.id,
+                      question.id,
+                      questionOptionIndex,
+                      questionOptionToUpdate.description)
                   }
 
                 case Some(questionId) =>
@@ -132,7 +132,8 @@ object EnqueteController extends Controller {
                     questionId,
                     questionIndex,
                     questionToUpdate.description)
-                  questionToUpdate.questionOptions.zipWithIndex.foreach { case (questionOptionToUpdate, questionOptionIndex) =>
+
+                  for ((questionOptionToUpdate, questionOptionIndex) <- questionToUpdate.questionOptions.zipWithIndex) {
                     questionOptionToUpdate.id match {
                       case None =>
                         QuestionOptions.insert(
