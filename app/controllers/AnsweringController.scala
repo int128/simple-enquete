@@ -10,51 +10,40 @@ object AnsweringController extends Controller {
 
   def show(answerKey: String) = Action { implicit request =>
     DB.withTransaction { implicit session =>
-      Enquetes.find(AnswerKey(answerKey)) match {
-        case Some(e) =>
-          request.cookies.get("k") match {
-            case Some(_) => Ok(views.html.answer(e.fetch))
-            case None    => Ok(views.html.answer(e.fetch)).withCookies(Cookie("k", UUID.randomUUID().toString))
-          }
-        case None => NotFound("not found")
-      }
+      Enquetes.find(AnswerKey(answerKey)).map(_.fetch)
+    } match {
+      case Some(enquete) =>
+        request.cookies.get("k") match {
+          case Some(_) => Ok(views.html.answer(enquete))
+          case None    => Ok(views.html.answer(enquete)).withCookies(Cookie("k", UUID.randomUUID().toString))
+        }
+
+      case None => NotFound("not found")
     }
   }
 
   def answer(answerKey: String) = Action(parse.urlFormEncoded) { request =>
     request.cookies.get("k") match {
       case Some(cookieKey) => {
-        val uid = UUID.fromString(cookieKey.value)
-        val questionAndAnswers = request.body.map { case (qId, oIds) => (qId.toInt, oIds) }
-
         DB.withTransaction { implicit session =>
           Enquetes.find(AnswerKey(answerKey)) match {
             case Some(enquete) =>
-              val questions = enquete.questions
+              val answererId = UUID.fromString(cookieKey.value)
+              val answerOf = (question: Question) => request.body.get(question.id.toString)
 
-              val givenQuestionIds = questionAndAnswers.keySet
-              val expectedQuestionIds = questions.map(_.id).toSet
+              for (question <- enquete.questions) {
+                question.questionType match {
+                  case SingleSelection =>
+                    answerOf(question) match {
+                      case Some(Seq(answer)) =>
+                        SingleSelectionAnswers.create(SingleSelectionAnswer(answererId, question.id, answer.toInt))
 
-              givenQuestionIds == expectedQuestionIds match {
-                case true =>
-                  questions.forall {
-                    case Question(_, qId, _, _, answerType) if answerType == SingleSelection =>
-                      // TODO: check if can toInt
-                      questionAndAnswers.get(qId).fold(false)(_.length == 1)
-
-                  } match {
-                    case true =>
-                      questions.map {
-                        case Question(_, qId, _, _, answerType) if answerType == SingleSelection =>
-                          SingleSelectionAnswers.create(SingleSelectionAnswer(uid, qId, questionAndAnswers(qId).head.toInt))
-                      }
-                      Ok(enquete.id.toString)
-
-                    case false => BadRequest("bad request")
-                  }
-
-                case false => BadRequest("bad request")
+                      case None => /* TODO: bad request */
+                    }
+                }
               }
+
+              NotImplemented
 
             case None => NotFound("not found")
           }
