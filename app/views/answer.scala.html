@@ -1,26 +1,26 @@
-@(e: models.FetchedEnquete)
+@(enquete: models.FetchedEnquete)
 
 @import helper._
 
-@main(e.enquete.title) {
+@main(enquete.enquete.title) {
 <div class="drop-shadow">
-    <div class="page-header"><h1>@e.enquete.title</h1></div>
-    <p>@e.enquete.description</p>
+    <div class="page-header"><h1>@enquete.enquete.title</h1></div>
+    <p>@enquete.enquete.description</p>
 
-    @form(action = routes.AnsweringController.answer(e.enquete.answerKey.value)) {
+    @form(action = routes.AnsweringController.answer(enquete.enquete.answerKey.value)) {
         <div class="enquete">
-            @for((q, qi) <- e.questions.zipWithIndex) {
+            @for((question, questionIndex) <- enquete.questions.zipWithIndex) {
                 <div class="question">
                     <div class="question-header">
                         <ul class="breadcrumb">
-                            <li><span class="label label-info">Q@(qi+1)</span> <span class="divider">:</span></li>
-                            <li>@q.question.description</li>
+                            <li><span class="label label-info">Q@(questionIndex + 1)</span> <span class="divider">:</span></li>
+                            <li>@question.question.description</li>
                         </ul>
                     </div>
-                    @for(o <- q.questionOptions) {
+                    @for(questionOption <- question.questionOptions) {
                         <label class="radio">
-                            <input type="radio" class="radio" name="@q.question.id" value="@o.id" />
-                            @o.description
+                            <input type="radio" class="radio" name="@question.question.id" value="@questionOption.id" />
+                            @questionOption.description
                         </label>
                     }
                 </div>
