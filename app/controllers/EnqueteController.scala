@@ -20,35 +20,6 @@ object EnqueteController extends Controller {
   implicit val fQuestionToCreate = Json.format[QuestionToCreate]
   implicit val fEnqueteToCreate = Json.format[EnqueteToCreate]
 
-  case class QuestionOptionResponse(id: Int,
-                                    description: String)
-  case class QuestionResponse(id: Int,
-                              description: String,
-                              questionType: String,
-                              questionOptions: List[QuestionOptionResponse])
-  case class EnqueteResponse(title: String,
-                             description: Option[String],
-                             answerLink: String,
-                             questions: List[QuestionResponse])
-
-  implicit val fQuestionOptionResponse = Json.format[QuestionOptionResponse]
-  implicit val fQuestionResponse = Json.format[QuestionResponse]
-  implicit val fEnqueteResponse = Json.format[EnqueteResponse]
-
-  case class QuestionOptionToUpdate(id: Option[Int],
-                                    description: String)
-  case class QuestionToUpdate(id: Option[Int],
-                              description: String,
-                              questionType: String,
-                              questionOptions: List[QuestionOptionToUpdate])
-  case class EnqueteToUpdate(title: String,
-                             description: Option[String],
-                             questions: List[QuestionToUpdate])
-
-  implicit val fQuestionOptionToUpdate = Json.format[QuestionOptionToUpdate]
-  implicit val fQuestionToUpdate = Json.format[QuestionToUpdate]
-  implicit val fEnqueteToUpdate = Json.format[EnqueteToUpdate]
-
   def create = Action(parse.json) { request =>
     request.body.validate[EnqueteToCreate].map { enqueteToCreate =>
       DB.withTransaction { implicit session =>
@@ -77,6 +48,21 @@ object EnqueteController extends Controller {
     }
   }
 
+  case class QuestionOptionResponse(id: Int,
+                                    description: String)
+  case class QuestionResponse(id: Int,
+                              description: String,
+                              questionType: String,
+                              questionOptions: List[QuestionOptionResponse])
+  case class EnqueteResponse(title: String,
+                             description: Option[String],
+                             answerLink: String,
+                             questions: List[QuestionResponse])
+
+  implicit val fQuestionOptionResponse = Json.format[QuestionOptionResponse]
+  implicit val fQuestionResponse = Json.format[QuestionResponse]
+  implicit val fEnqueteResponse = Json.format[EnqueteResponse]
+
   def get(adminKey: String) = Action { implicit request =>
     DB.withTransaction { implicit session =>
       Enquetes.find(AdminKey(adminKey)).map { enquete =>
@@ -101,6 +87,20 @@ object EnqueteController extends Controller {
       case None => NotFound("not found")
     }
   }
+
+  case class QuestionOptionToUpdate(id: Option[Int],
+                                    description: String)
+  case class QuestionToUpdate(id: Option[Int],
+                              description: String,
+                              questionType: String,
+                              questionOptions: List[QuestionOptionToUpdate])
+  case class EnqueteToUpdate(title: String,
+                             description: Option[String],
+                             questions: List[QuestionToUpdate])
+
+  implicit val fQuestionOptionToUpdate = Json.format[QuestionOptionToUpdate]
+  implicit val fQuestionToUpdate = Json.format[QuestionToUpdate]
+  implicit val fEnqueteToUpdate = Json.format[EnqueteToUpdate]
 
   def update(adminKey: String) = Action(parse.json) { implicit request =>
     request.body.validate[EnqueteToUpdate].map { enqueteToUpdate =>
