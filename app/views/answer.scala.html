@@ -1,6 +1,7 @@
 @(enquete: models.FetchedEnquete)
 
 @import helper._
+@import models._
 
 @main(enquete.enquete.title) {
 <div class="drop-shadow">
@@ -17,11 +18,29 @@
                             <li>@question.question.description</li>
                         </ul>
                     </div>
-                    @for(questionOption <- question.questionOptions) {
-                        <label class="radio">
-                            <input type="radio" class="radio" name="@question.question.id" value="@questionOption.id" />
-                            @questionOption.description
-                        </label>
+                    @question.question.questionType match {
+                        case SingleSelection => {
+                            @for(questionOption <- question.questionOptions) {
+                                <label class="radio">
+                                    <input type="radio" class="radio" name="@question.question.id" value="@questionOption.id" />
+                                    @questionOption.description
+                                </label>
+                            }
+                        }
+                        case MultipleSelection => {
+                            @for(questionOption <- question.questionOptions) {
+                                <label class="checkbox">
+                                    <input type="checkbox" class="checkbox" name="@question.question.id" value="@questionOption.id" />
+                                    @questionOption.description
+                                </label>
+                            }
+                        }
+                        case Numeric => {
+                            <input type="text" class="text" name="@question.question.id" />
+                        }
+                        case Text => {
+                            <textarea class="input-block-level" rows="5" name="@question.question.id" placeholder="自由記述"></textarea>
+                        }
                     }
                 </div>
             }
