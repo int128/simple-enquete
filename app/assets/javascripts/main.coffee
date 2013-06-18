@@ -19,8 +19,6 @@ $ ->
                 type: 'post'
                 contentType: 'application/json; Charset=UTF-8'
                 data: JSON.stringify(Enquetes.toAPIdata(enquete))
-                dataType: 'json'
-            .pipe(Enquetes.fromAPIdata)
         @fromAPIdata: (d) ->
             d.enquete.questions.forEach (q) -> q.questionType = QuestionType[q.questionType]
             new Enquete(d.enquete)
@@ -119,9 +117,9 @@ $ ->
                 location.href = "/admin##{d.adminKey}"
         update: =>
             adminKey = location.hash.substring(1)
-            Enquetes.update(adminKey, @enquete()).done (enquete) =>
-                @enquete(enquete)
-                @status(200)
+            Enquetes.update(adminKey, @enquete()).done =>
+                @load(adminKey).done =>
+                    @status(200)
 
     class Controller
         route: ->

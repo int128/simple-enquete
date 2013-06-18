@@ -154,13 +154,13 @@ object EnqueteController extends Controller {
               }
             }
 
-            NotImplemented("todo")
+            Ok("updated")
 
           case None => NotFound("not found")
         }
       }
-    }.recoverTotal { e =>
-      BadRequest(Json.obj("error" -> JsError.toFlatJson(e)))
+    }.recoverTotal { error =>
+      BadRequest(error.toString)
     }
   }
 
